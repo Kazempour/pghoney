@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -22,7 +22,7 @@ type PostgresConnection struct {
 }
 
 func NewPostgresConnection(conn net.Conn, tcpTimeout time.Duration) *PostgresConnection {
-	conn.SetDeadline(time.Now().Add(tcpTimeout))
+	_ = conn.SetDeadline(time.Now().Add(tcpTimeout))
 
 	remote_addr := strings.Split(conn.RemoteAddr().String(), ":")
 	source_ip := remote_addr[0]
@@ -62,5 +62,5 @@ func (pgConn *PostgresConnection) isSSLRequest() bool {
 
 func (pgConn *PostgresConnection) handleSSLRequest() {
 	pgConn.logger.Debug("Got ssl request...")
-	pgConn.connection.Write([]byte("N"))
+	_, _ = pgConn.connection.Write([]byte("N"))
 }

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 type PostgresServer struct {
@@ -116,7 +116,7 @@ func (p *PostgresServer) handleRequest(pgConn *PostgresConnection) {
 
 		// Send to hpfeeds if turned on
 		if p.hpfeedsEnabled {
-			p.sendToHpFeeds(pgConn)
+			_ = p.sendToHpFeeds(pgConn)
 		}
 
 		pgConn.logger.WithFields(log.Fields{
@@ -159,7 +159,7 @@ func (p *PostgresServer) handleStartup(pgConn *PostgresConnection) bool {
 	if (actualLength == 0) || (claimedLength != actualLength) {
 		pgConn.logger.Debugf("Invalid handshake request received from %s, ", pgConn.connection.RemoteAddr())
 		pgConn.logger.Debugf("claimed length: %d, actual length: %d", claimedLength, actualLength)
-		pgConn.connection.Write(handshakeErrorResponse())
+		_, _ = pgConn.connection.Write(handshakeErrorResponse())
 		return true
 	}
 	_ = buf.int32()
@@ -182,14 +182,14 @@ func (p *PostgresServer) handleStartup(pgConn *PostgresConnection) bool {
 		// Looking for requesting cleartext passwords would be a good way to finger print
 		// pghoney. We should have md5 be the default since it is the postgres default.
 		if p.cleartext {
-			pgConn.connection.Write(cleartextAuthResponse())
+			_, _ = pgConn.connection.Write(cleartextAuthResponse())
 		} else {
-			pgConn.connection.Write(md5AuthResponse())
+			_, _ = pgConn.connection.Write(md5AuthResponse())
 		}
 		return true
 	}
 
-	pgConn.connection.Write(userDoesntExistResponse(startupMap["user"]))
+	_, _ = pgConn.connection.Write(userDoesntExistResponse(startupMap["user"]))
 	return false
 }
 
@@ -202,14 +202,14 @@ func (p *PostgresServer) handlePassword(pgConn *PostgresConnection) {
 	if p.cleartext {
 		_ = buf.next(3) // null terminators and the length
 		pgConn.logger.WithFields(log.Fields{
-			"cleartext_password": fmt.Sprintf("%s", buf.string()),
+			"cleartext_password": buf.string(),
 		}).Info("Got cleartext password")
 	} else {
 		// skip the length and `md5` bit
 		_ = buf.next(6)
 		pgConn.logger.WithFields(log.Fields{
-			"md5_hashed_password": fmt.Sprintf("%s", buf.string()),
+			"md5_hashed_password": buf.string(),
 		}).Info("Got md5 hashed password")
 	}
-	pgConn.connection.Write(authFailedResponse())
+	_, _ = pgConn.connection.Write(authFailedResponse())
 }

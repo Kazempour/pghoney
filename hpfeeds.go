@@ -3,8 +3,8 @@ package main
 import (
 	"time"
 
-	log "github.com/Sirupsen/logrus"
 	hpfeeds "github.com/fw42/go-hpfeeds"
+	log "github.com/sirupsen/logrus"
 )
 
 type HpFeedsEvent struct {

@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	log "github.com/Sirupsen/logrus"
 	"github.com/lib/pq/oid"
+	log "github.com/sirupsen/logrus"
 )
 
 type postgresRequest []byte
@@ -18,6 +18,7 @@ func (b *postgresRequest) int32() (n int) {
 	return
 }
 
+// nolint
 func (b *postgresRequest) oid() (n oid.Oid) {
 	n = oid.Oid(binary.BigEndian.Uint32(*b))
 	*b = (*b)[4:]
@@ -25,6 +26,7 @@ func (b *postgresRequest) oid() (n oid.Oid) {
 }
 
 // N.B: this is actually an unsigned 16-bit integer, unlike int32
+// nolint
 func (b *postgresRequest) int16() (n int) {
 	n = int(binary.BigEndian.Uint16(*b))
 	*b = (*b)[2:]
@@ -47,6 +49,7 @@ func (b *postgresRequest) next(n int) (v []byte) {
 	return
 }
 
+// nolint
 func (b *postgresRequest) byte() byte {
 	return b.next(1)[0]
 }
@@ -62,6 +65,7 @@ func (b *postgresResponse) int32(n int) {
 	b.buf = append(b.buf, x...)
 }
 
+// nolint
 func (b *postgresResponse) int16(n int) {
 	x := make([]byte, 2)
 	binary.BigEndian.PutUint16(x, uint16(n))
@@ -72,6 +76,7 @@ func (b *postgresResponse) string(s string) {
 	b.buf = append(b.buf, (s + "\000")...)
 }
 
+// nolint
 func (b *postgresResponse) byte(c byte) {
 	b.buf = append(b.buf, c)
 }
@@ -86,6 +91,7 @@ func (b *postgresResponse) wrap() []byte {
 	return b.buf
 }
 
+// nolint
 func (b *postgresResponse) next(c byte) {
 	p := b.buf[b.pos:]
 	binary.BigEndian.PutUint32(p, uint32(len(p)))

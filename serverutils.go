@@ -5,17 +5,14 @@ import (
 	"io"
 	"net"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 // Initial requests:
 // 	SSL Request - 00 00 00 08 04 d2 16 2f
 func isSSLRequest(payload []byte) bool {
 	sslRequestMagicNumber := []byte{0, 0, 0, 8, 4, 210, 22, 47}
-	if bytes.Compare(payload[:8], sslRequestMagicNumber) == 0 {
-		return true
-	}
-	return false
+	return bytes.Equal(payload[:8], sslRequestMagicNumber)
 }
 
 // -1 means everything is null
